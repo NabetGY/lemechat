@@ -136,7 +136,7 @@ class SalaDefecto(QMainWindow):
 		perfil = self.db.collection('perfiles').where('email', '==', usuario.email)
 		print(perfil)
 		print(usuario.email)'''
-		cliente.connect(('localhost', 8003))
+		cliente.connect(('localhost', 8004))
 		self.salaActual.setText('Principal')
 
 	def desconectar(self):
@@ -176,16 +176,17 @@ class SalaDefecto(QMainWindow):
 	def crearSala(self):
 		nombreSala, ok = QInputDialog.getText(self, 'Crear Sala', 'Nombre de la Sala: ')
 		if ok:
-			cliente.sendall('#cR'.encode('utf-8'))
-			cliente.sendall(nombreSala.encode('utf-8'))
+			datos = '#cR<{}>'.format(nombreSala)
+			print(datos)
+			cliente.sendall(datos.encode('utf-8'))
 			self.salaActual.setText(nombreSala)
 			self.chat.clear()
 
 	def cambiarSala(self):
 		nombreSala, ok = QInputDialog.getText(self, 'Cambiar de Sala', 'Nombre de la Sala: ')
 		if ok:
-			cliente.sendall('#gR'.encode('utf-8'))
-			cliente.sendall(nombreSala.encode('utf-8'))
+			datos = '#gR<{}>'.format(nombreSala)
+			cliente.sendall(datos.encode('utf-8'))
 			self.salaActual.setText(nombreSala)
 			self.chat.clear()
 
