@@ -51,10 +51,9 @@ class Login(QMainWindow):
 		password = self.contrasenia.text()
 		try:
 			usuario = auth.sign_in_with_email_and_password(email, password)
-			print(usuario)
-			print(type(usuario))
 			salaDefecto = SalaDefecto()
 			salaDefecto.usuario = usuario
+			
 			widget.addWidget(salaDefecto)
 			widget.setCurrentIndex(widget.currentIndex()+1)
 		except Exception as e:
@@ -129,13 +128,14 @@ class SalaDefecto(QMainWindow):
 		self.iniciarHilo()
 		
 	def conexion(self):
-		'''print(self.usuario)
-		usuario = auth.get_account_info(self.usuario['idToken'])
+		'''usuario = auth.get_account_info(self.usuario['idToken'])
 		print(usuario)
 		db.firestore.client()
 		perfil = self.db.collection('perfiles').where('email', '==', usuario.email)
 		print(perfil)
 		print(usuario.email)'''
+		
+		
 		cliente.connect(('localhost', 8004))
 		self.salaActual.setText('Principal')
 
