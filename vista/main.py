@@ -53,10 +53,6 @@ class Login(QMainWindow):
 			usuario = auth.sign_in_with_email_and_password(email, password)
 			salaDefecto = SalaDefecto()
 			salaDefecto.usuario = usuario
-			db = firestore.client()
-			perfil = db.collection('perfiles').where("email","==",usuario['email']).get()
-			per = perfil[0].to_dict()
-			print(per['username'])
 			widget.addWidget(salaDefecto)
 			widget.setCurrentIndex(widget.currentIndex()+1)
 		except Exception as e:
@@ -131,16 +127,16 @@ class SalaDefecto(QMainWindow):
 		self.iniciarHilo()
 		
 	def conexion(self):
-		'''usuario = auth.get_account_info(self.usuario['idToken'])
-		print(usuario)
-		db.firestore.client()
-		perfil = self.db.collection('perfiles').where('email', '==', usuario.email)
-		print(perfil)
-		print(usuario.email)'''
-		
-		
+
+		db = firestore.client()
+		perfil = db.collection('perfiles').where("email","==",auth.current_user['email']).get()
+		per = perfil[0].to_dict()
+		print(per['username'])
+		un=per['username']### user name
 		cliente.connect(('localhost', 8004))
 		self.salaActual.setText('Principal')
+		datos = '#nM<{}>'.format(un)
+		cliente.sendall(datos.encode('utf-8'))
 
 	def desconectar(self):
 		cliente.sendall('#exit'.encode('utf-8'))
@@ -158,12 +154,13 @@ class SalaDefecto(QMainWindow):
 
 	def recibir(self, mensaje):
 		datos = mensaje.decode('utf-8')
+		mensajeun = json.loads(datos)
 		opcion = datos[:10].strip()
 		print(opcion)
 		if opcion == '#lR':
 			self.listarSalasRecv(datos[10:])
 		else:
-			self.chat.append(mensaje.decode('utf-8'))
+			self.chat.append('{}:\n{}'.format(mensajeun['username'],mensajeun['mensaje']))
 			self.chat.setAlignment(Qt.AlignLeft)
 
 	def enviar(self):

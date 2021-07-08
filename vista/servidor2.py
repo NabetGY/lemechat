@@ -15,13 +15,16 @@ class Cliente(threading.Thread):
         super(Cliente, self).__init__()                      
         self.conexion = conexion          
         self.direccion = direccion
-        self.username = ''
+        self.UserName = ''
         self.sala = 'DEFECTO' 
 
     def difusion(self, datos):
+        datosEnviados={'username': self.UserName, 'mensaje': datos.decode('utf-8')}
+        datosEnviados = json.dumps(datosEnviados)
+        print(datosEnviados)
         for cliente in SALAS[self.sala]:
             if cliente.conexion != self.conexion:
-                cliente.conexion.sendall(datos)
+                cliente.conexion.sendall(datosEnviados.encode('utf-8'))
 
     def crearSala(self, datos):
         print('creando sala...')
@@ -60,6 +63,9 @@ class Cliente(threading.Thread):
         datos = f"{'#lR':<{10}}"+datos
         self.conexion.sendall(datos.encode('utf-8'))
 
+    def setUserName(self, datos):
+        lista = datos.split("<")
+        self.UserName = lista[1].split('>')[0]
 
 
     def run(self):   
@@ -82,6 +88,9 @@ class Cliente(threading.Thread):
                     break
                 elif opciones[:3] == '#lR':
                     self.listarSalas()
+                elif opciones[:3] == '#nM':
+                    self.setUserName(opciones)
+
             else:
                 print(datos.decode('utf-8'))
                 self.difusion(datos)
