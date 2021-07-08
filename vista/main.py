@@ -53,7 +53,10 @@ class Login(QMainWindow):
 			usuario = auth.sign_in_with_email_and_password(email, password)
 			salaDefecto = SalaDefecto()
 			salaDefecto.usuario = usuario
-			
+			db = firestore.client()
+			perfil = db.collection('perfiles').where("email","==",usuario['email']).get()
+			per = perfil[0].to_dict()
+			print(per['username'])
 			widget.addWidget(salaDefecto)
 			widget.setCurrentIndex(widget.currentIndex()+1)
 		except Exception as e:
