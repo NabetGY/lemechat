@@ -87,7 +87,7 @@ class Registro(QMainWindow):
 				auth.create_user_with_email_and_password(email, password)
 				db = firestore.client()
 				perfil = {'username': username, 'email': email, 'nombres': nombres, 'apellidos': apellidos, 'edad': edad, 'genero': genero}
-				db.collection('perfiles').add(perfil)
+				db.collection('perfiles').document(email).set(perfil)
 				login = Login()
 				widget.addWidget(login)
 				widget.setCurrentIndex(widget.currentIndex()+1)
@@ -136,7 +136,7 @@ class SalaDefecto(QMainWindow):
 		perfil = self.db.collection('perfiles').where('email', '==', usuario.email)
 		print(perfil)
 		print(usuario.email)'''
-		cliente.connect(('localhost', 8004))
+		cliente.connect(('localhost', 8006))
 		self.salaActual.setText('Principal')
 
 	def desconectar(self):
@@ -165,6 +165,7 @@ class SalaDefecto(QMainWindow):
 
 	def enviar(self):
 		try:
+
 			mensaje = self.campoTexto.toPlainText()
 			self.campoTexto.clear()
 			self.chat.append(mensaje)
@@ -198,6 +199,27 @@ class SalaDefecto(QMainWindow):
 
 	def listarSalas(self):
 		cliente.sendall('#lR'.encode('utf-8'))
+		db = firestore.client()
+		print('##############')
+		print(auth.current_user['email'])
+		print('****************')
+		consulta = db.collection(u'perfiles')
+		perfiles =  consulta.stream()
+		for perfil in perfiles:
+			print('{} => {} '.format(perfil.id, perfil.to_dict()))
+		print('***************************************')
+		consulta2 = db.collection(u'perfiles').where('email','==','zel2@mail.com').stream()
+		for item in consulta2:
+			print('{} => {} '.format(item.id, item.to_dict()))
+		# perfil = db.collection(u'perfiles').document('zel2@mail.com')
+		# print(perfil.get())
+		# print(perfil.get().data())
+
+
+
+
+
+
 
 	def listarSalasRecv(self, mensaje):
 		salasDisponibles = json.loads(mensaje)
