@@ -67,6 +67,29 @@ class Cliente(threading.Thread):
         lista = datos.split("<")
         self.UserName = lista[1].split('>')[0]
 
+    def showUsers(self):
+        listas=list(SALAS.values())
+        usuariosDisponibles = []
+        for lista in listas:
+            for item in lista:
+                usuariosDisponibles.append(item.UserName)
+        datos = json.dumps(usuariosDisponibles)
+        datos = f"{'#sU':<{10}}"+datos
+        self.conexion.sendall(datos.encode('utf-8'))
+
+    def private(self, datos):
+        lista = datos.split("<")
+        usuario = lista[1].split('>')[0]
+        listas=list(SALAS.values())
+        usuariosDisponibles = []
+        for lista in listas:
+            for item in lista:
+                if item.UserName == usuario:
+                    pass
+                else:
+                    pass
+
+
 
     def run(self):   
         print('...conectado desde:',self.direccion) 
@@ -83,13 +106,17 @@ class Cliente(threading.Thread):
                     self.cambiarSala(opciones)
                 elif opciones[:3] == '#eR':
                     self.salirSala()
-                elif opciones[:3] == '#exit':
+                elif opciones[:5] == '#exit':
                     self.desconectar()
                     break
                 elif opciones[:3] == '#lR':
                     self.listarSalas()
                 elif opciones[:3] == '#nM':
                     self.setUserName(opciones)
+                elif opciones[:10] == '#showUsers':
+                    self.showUsers()
+                elif opciones[:8] == '#private':
+                    self.private(self, opciones)
 
             else:
                 print(datos.decode('utf-8'))

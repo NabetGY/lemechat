@@ -101,6 +101,7 @@
     <addaction name="actionSalir_de_la_Sala"/>
     <addaction name="actionDesconectar"/>
     <addaction name="actionListar_Salas"/>
+    <addaction name="actionUsuarios_conectados"/>
    </widget>
    <addaction name="menuinicio"/>
    <addaction name="menuOpciones"/>
@@ -134,6 +135,11 @@
   <action name="actionListar_Salas">
    <property name="text">
     <string>Listar Salas</string>
+   </property>
+  </action>
+  <action name="actionUsuarios_conectados">
+   <property name="text">
+    <string>Usuarios conectados</string>
    </property>
   </action>
  </widget>

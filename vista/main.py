@@ -1,6 +1,6 @@
 import sys 
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow, QInputDialog, QListWidget, QVBoxLayout
+from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow, QInputDialog, QListWidget, QVBoxLayout, QtWidget
 from PyQt5.uic import loadUi
 from PyQt5.QtCore import Qt
 import pyrebase
@@ -119,6 +119,7 @@ class SalaDefecto(QMainWindow):
 		self.actionSalir_de_la_Sala.triggered.connect(self.salirSala)
 		self.actionDesconectar.triggered.connect(self.desconectar)
 		self.actionListar_Salas.triggered.connect(self.listarSalas)
+		self.actionUsuarios_conectados.triggered.connect(self.showUsers)
 		self.usuario = {}
 		self.db=firestore.client()
 
@@ -127,24 +128,12 @@ class SalaDefecto(QMainWindow):
 		self.iniciarHilo()
 		
 	def conexion(self):
-<<<<<<< HEAD
-		'''print(self.usuario)
-		usuario = auth.get_account_info(self.usuario['idToken'])
-		print(usuario)
-		db.firestore.client()
-		perfil = self.db.collection('perfiles').where('email', '==', usuario.email)
-		print(perfil)
-		print(usuario.email)'''
-		cliente.connect(('localhost', 8006))
-=======
-
 		db = firestore.client()
 		perfil = db.collection('perfiles').where("email","==",auth.current_user['email']).get()
 		per = perfil[0].to_dict()
 		print(per['username'])
 		un=per['username']### user name
 		cliente.connect(('localhost', 8004))
->>>>>>> 53b37dbd41a5f3df03f84086a8d6b7cf8beb97ab
 		self.salaActual.setText('Principal')
 		datos = '#nM<{}>'.format(un)
 		cliente.sendall(datos.encode('utf-8'))
@@ -164,15 +153,17 @@ class SalaDefecto(QMainWindow):
 		hilo.start()
 
 	def recibir(self, mensaje):
-		datos = mensaje.decode('utf-8')
-		mensajeun = json.loads(datos)
+		datos = mensaje.decode('utf-8')		
 		opcion = datos[:10].strip()
 		print(opcion)
 		if opcion == '#lR':
 			self.listarSalasRecv(datos[10:])
+		elif opcion == '#sU':
+			self.listarUsuariosRecv(datos[10:])
 		else:
-			self.chat.append('{}:\n{}'.format(mensajeun['username'],mensajeun['mensaje']))
+			mensajeun = json.loads(datos)
 			self.chat.setAlignment(Qt.AlignLeft)
+			self.chat.append('{}: {}'.format(mensajeun['username'],mensajeun['mensaje']))
 
 	def enviar(self):
 		try:
@@ -210,50 +201,72 @@ class SalaDefecto(QMainWindow):
 
 	def listarSalas(self):
 		cliente.sendall('#lR'.encode('utf-8'))
-		db = firestore.client()
-		print('##############')
-		print(auth.current_user['email'])
-		print('****************')
-		consulta = db.collection(u'perfiles')
-		perfiles =  consulta.stream()
-		for perfil in perfiles:
-			print('{} => {} '.format(perfil.id, perfil.to_dict()))
-		print('***************************************')
-		consulta2 = db.collection(u'perfiles').where('email','==','zel2@mail.com').stream()
-		for item in consulta2:
-			print('{} => {} '.format(item.id, item.to_dict()))
-		# perfil = db.collection(u'perfiles').document('zel2@mail.com')
-		# print(perfil.get())
-		# print(perfil.get().data())
-
-
-
-
-
-
+		#db = firestore.client()
+		# print('##############')
+		# print(auth.current_user['email'])
+		# print('****************')
+		# consulta = db.collection(u'perfiles')
+		# perfiles =  consulta.stream()
+		# for perfil in perfiles:
+		# 	print('{} => {} '.format(perfil.id, perfil.to_dict()))
+		# print('***************************************')
+		# consulta2 = db.collection(u'perfiles').where('email','==','zel2@mail.com').stream()
+		# for item in consulta2:
+		# 	print('{} => {} '.format(item.id, item.to_dict()))
 
 	def listarSalasRecv(self, mensaje):
 		salasDisponibles = json.loads(mensaje)
 		vistaListar = Dialog(self)
-		vistaListar.listar(salasDisponibles)
+		vistaListar.listarSalas(salasDisponibles)
 		vistaListar.show()
-		
+
+	def showUsers(self):
+		cliente.sendall('#showUsers'.encode('utf-8'))
+
+	def listarUsuariosRecv(self, mensaje):
+		usuariosDisponibles = json.loads(mensaje)
+		vistaListar = Dialog(self)
+		vistaListar.listarUsuarios(usuariosDisponibles)
+		vistaListar.show()
+
+	def chatPrivado(self):
+		usuario, ok = QInputDialog.getText(self, 'Buscar usuario', 'digita el nombre del usuario: ')
+		if ok:
+			datos = '#private<{}>'.format(usuario)
+			cliente.sendall(datos.encode('utf-8'))
+			self.salaActual.setText(usuario)
+			self.chat.clear()
+
 
 class Dialog(QDialog):
 	def __init__(self, *args, **kwargs):
 		super(Dialog, self).__init__(*args, **kwargs)
 		self.setWindowTitle("Salas Disponibles")
 		self.setFixedSize(300, 400)
-		self.listaSalas = QListWidget()
+		self.listaDeDatos = QListWidget()
+		self.listaDeDatos.clicked.connect(self.opcionesDeUsuario)
 		
 
-	def listar(self, salas):
+	def listarSalas(self, salas):
 		layout = QVBoxLayout()
 		for sala, num in salas.items():
 			mensaje = 'Sala: {} : Usuarios conectatos({})'.format(sala, num)
-			self.listaSalas.addItem(mensaje)
-		layout.addWidget(self.listaSalas)
+			self.listaDeDatos.addItem(mensaje)
+		layout.addWidget(self.listaDeDatos)
 		self.setLayout(layout)
+
+	def listarUsuarios(self, usuarios):
+		layout = QVBoxLayout()
+		for usuario in usuarios:
+			self.listaDeDatos.addItem(usuario)
+		layout.addWidget(self.listaDeDatos)
+		self.setLayout(layout)
+
+	def opcionesDeUsuario(self):
+		item = self.listaDeDatos.currentItem()
+		print(item.text())
+
+
 
 
 
