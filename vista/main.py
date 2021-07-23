@@ -77,9 +77,9 @@ class Login(QMainWindow, Ui_MainWindow):
 			salaDefecto.usuario = usuario
 			widget.addWidget(salaDefecto)
 			widget.setCurrentIndex(widget.currentIndex()+1)
-		except Exception as e:
+		except :
 			self.labelError.setVisible(True)
-			raise e
+			
 
 
 class Registro(QMainWindow, ui_registro):
