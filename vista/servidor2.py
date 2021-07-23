@@ -80,16 +80,14 @@ class Cliente(threading.Thread):
     def private(self, datos):
         lista = datos.split("<")
         usuario = lista[1].split('>')[0]
+        mensaje = lista[2].split('>')[0]
+        datosEnviados={'username': self.UserName, 'mensaje': mensaje, 'privado': True}
+        datosEnviados = json.dumps(datosEnviados)
         listas=list(SALAS.values())
-        usuariosDisponibles = []
         for lista in listas:
             for item in lista:
-                if item.UserName == usuario:
-                    pass
-                else:
-                    pass
-
-
+                if item.conexion != self.conexion and item.UserName == usuario:
+                    item.conexion.sendall(datosEnviados.encode('utf-8'))
 
     def run(self):   
         print('...conectado desde:',self.direccion) 
@@ -116,7 +114,7 @@ class Cliente(threading.Thread):
                 elif opciones[:10] == '#showUsers':
                     self.showUsers()
                 elif opciones[:8] == '#private':
-                    self.private(self, opciones)
+                    self.private(opciones)
 
             else:
                 print(datos.decode('utf-8'))

@@ -1,19 +1,40 @@
 import sys 
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow, QInputDialog, QListWidget, QVBoxLayout, QtWidget
+from PyQt5.QtWidgets import QDialog, QApplication, QMainWindow, QInputDialog, QListWidget, QVBoxLayout, QLineEdit, QLabel, QPushButton
 from PyQt5.uic import loadUi
 from PyQt5.QtCore import Qt
 import pyrebase
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
+from oauth2client.service_account import ServiceAccountCredentials
+
 
 import socket 
 import threading
 import pickle
 import json
 
-cred = credentials.Certificate("serviceAccountKey.json")
+from login import Ui_MainWindow
+from registro import Ui_MainWindow as ui_registro
+from salaDefecto import Ui_salaDefecto
+
+variables_keys = {
+	"type": "service_account",
+	"project_id": "lemechat-bd",
+	"private_key_id": "d3f776e770a0b306f16d2d0d63a5912d039d780a",
+	"private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCdybjDTC77uRH3\nc/8zqVZBghwDww9C0mwXbzx5+n3pkYhr9hwahzmYh8A0IfF5ujbylzRyvGYjgJKC\nDUtoDEc59S1JOI34+wEh2bYFILKKj67nlBVveQ4glowKikdMJmlqyl38czl4L9VI\nG3Q09rmOBcr4Sysyw0ncvHsANpxfxIXhlp6K2sf+ggY8BEe+02+P26e8DHdK77mk\nCpuQMtKxq2FYT7nOiijCuWx3mSqv8O+nwfreKAqlJ7orb6L6EuoIrtK1pwj9Ap26\noc2cUyIxyPbgZv79K6TiLXbh9ACrS+Vu1QROIEq0OTojra0ha1kqRfEWkDIPyr82\n20urorA/AgMBAAECggEAQN2yxSbGkdlNV4sqONS+jwOr/Kft2CylHyUtmX+uz5xy\nlt+AQi+hL+Fu1H+3w7EX8bbTau+klae/kxNgEpApn9v5GAbV5qtZlc7ok0cT3v6e\nirlH7qG3exIo1BRwpw+LeslixeugjpYreg8/QJ7FPWuIO3a7dYzvCn25mybYNk3w\nTYvOpwgBO/HZ11E1CKhOkYBTTBMMlE14wsbK5IrKShFe5ixFcc4ZMgyCZBQZnd6u\n9GWIWh5Yab9wtBx3NTfbJx12/fh2fbymQFA3ZWq3FbNVCPVUd3jnOZDYMNlv3jJO\n1Fnr1aUV2TsLzPNIl77NEDLn9Seuk1BzKT9T85tFcQKBgQDbpX+t4F0wqiyMCWmX\nK0A/q6BpUB6mEnG8zu8rJ6i8uLKWO6ydWd6rIj42xjKza3NZRft9NlL+EAbdjR2D\niIB1eUF9ef9NOzlacNxt0/qXNGke2EIGI8UOX2tB6zvlHYgS3OB/K7ylcvdZzFgV\nDNx9VH2noZM3P+Ldql0rhkP9MwKBgQC350FzHnbmNvGYcMsvH7vwRMf6cPYxFPk8\nb44hTUp9w1itZO941Rl0xQwg4NQ8Ei9ItATkZLRIFR7JPSSw9WkGBmdnGhmGEcMk\nzAS8S+h0LmZzQIGVPiVSgsIJxWONj5tL9cZgiYOYgBgnOa2a3TStluFQPaIzgoz2\nYTxEHHvIxQKBgG7R/6uQ6jPliHhXP2lALzhwtYytGemcoLoshkt1xRMC9UgLb7os\nX8ZkjpNASNBxxE8kmhDA2frJx0z9KAj3VCjxNvPCG+exm+xfyTe4nlSv4uHnJtjG\nL2RjDFDECQI+diteOf6v6IxphxdNnJtyU8UAXi23vflASIyiqkONiLw1AoGBALa4\n01LqRgDfPpTUHU2pHjbQYFH5wuNpj2n4/SMhhI4IdidyTm2kbjKTRkW0natB9jEq\njGHRnT6xnXEdi0M30y3lVwAd8pY/N8Fr5JiiY0hsgeaphRcgND0TJnBG629P7GFA\nxeZNO69eNqFisZdZimmfrCbp1iuP3zc9zX9vPZ5xAoGAI7osvnmVvqBYSDRL3bmr\nSK2ryJdyEehgoOrlYUipVLAWaodReDb1gD45flqIk5mbZQu4SsK4xeVQGkw/uPMP\nxt6ZYBGMfRwQXWtCAkmsb9EFjuUHpifuABSNJQfXvhnO55J2NKdsReqKOzUeMwqQ\nJg+g9/cbR4dYmO7uM0mz10k=\n-----END PRIVATE KEY-----\n",
+	"client_email": "firebase-adminsdk-6yuq4@lemechat-bd.iam.gserviceaccount.com",
+	"client_id": "111582688757611876986",
+	"auth_uri": "https://accounts.google.com/o/oauth2/auth",
+	"token_uri": "https://oauth2.googleapis.com/token",
+	"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+	"client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-6yuq4%40lemechat-bd.iam.gserviceaccount.com"
+}
+with open('data.json', 'w') as fp:
+    json.dump(variables_keys, fp)
+
+cred = credentials.Certificate('data.json')
 firebase_admin.initialize_app(cred)
 
 firebaseConfig ={
@@ -26,15 +47,16 @@ firebaseConfig ={
 	'appId': "1:708805251431:web:36c4633fd84795988e9fc2"
 }
 
+
 firebase = pyrebase.initialize_app(firebaseConfig)
 
 auth = firebase.auth()
 
-class Login(QMainWindow):
+class Login(QMainWindow, Ui_MainWindow):
 	"""docstring for Login"""
 	def __init__(self):
 		super(Login, self).__init__()
-		loadUi("login.ui", self)
+		self.setupUi(self)
 		self.btnEntrar.clicked.connect(self.loginFuncion)
 		self.contrasenia.setEchoMode(QtWidgets.QLineEdit.Password)
 		self.btnRegistrate.clicked.connect(self.registrate)
@@ -60,11 +82,11 @@ class Login(QMainWindow):
 			raise e
 
 
-class Registro(QMainWindow):
+class Registro(QMainWindow, ui_registro):
 	"""docstring for Registro"""
 	def __init__(self):
 		super(Registro, self).__init__()
-		loadUi("registro.ui", self)
+		self.setupUi(self)
 		self.contrasenia.setEchoMode(QtWidgets.QLineEdit.Password)
 		self.contrasenia_2.setEchoMode(QtWidgets.QLineEdit.Password)
 		self.btnRegistrate.clicked.connect(self.registroFuncion)
@@ -108,11 +130,11 @@ def miHilo(callbackFunc):
 			cliente.close()
 			break
 
-class SalaDefecto(QMainWindow):
+class SalaDefecto(QMainWindow, Ui_salaDefecto):
 	"""docstring for SalaDefecto"""
 	def __init__(self):
 		super(SalaDefecto, self).__init__()
-		loadUi("salaDefecto.ui", self)
+		self.setupUi(self)
 		self.btnEnviar.clicked.connect(self.enviar)
 		self.actionCrear_Sala.triggered.connect(self.crearSala)
 		self.actionCambiar_de_Sala.triggered.connect(self.cambiarSala)
@@ -120,6 +142,8 @@ class SalaDefecto(QMainWindow):
 		self.actionDesconectar.triggered.connect(self.desconectar)
 		self.actionListar_Salas.triggered.connect(self.listarSalas)
 		self.actionUsuarios_conectados.triggered.connect(self.showUsers)
+		self.actionMensaje_Privado.triggered.connect(self.mensajePrivado)
+
 		self.usuario = {}
 		self.db=firestore.client()
 
@@ -155,23 +179,25 @@ class SalaDefecto(QMainWindow):
 	def recibir(self, mensaje):
 		datos = mensaje.decode('utf-8')		
 		opcion = datos[:10].strip()
-		print(opcion)
 		if opcion == '#lR':
 			self.listarSalasRecv(datos[10:])
 		elif opcion == '#sU':
 			self.listarUsuariosRecv(datos[10:])
 		else:
 			mensajeun = json.loads(datos)
-			self.chat.setAlignment(Qt.AlignLeft)
-			self.chat.append('{}: {}'.format(mensajeun['username'],mensajeun['mensaje']))
+			if 'privado' in mensajeun:
+				mensaje = '<p style="color:red;text-align:left;">(PRIVADO!)<b> {}:</b> {}</p>'.format(mensajeun['username'],mensajeun['mensaje'])
+			else:
+				mensaje = '<p style="color:blue;text-align:left;"><b>{}:</b> {}</p>'.format(mensajeun['username'],mensajeun['mensaje'])
+			self.chat.append(mensaje)
 
 	def enviar(self):
 		try:
 
 			mensaje = self.campoTexto.toPlainText()
+			mensaje2 = '<p style="text-align:right;">{}</p>'.format(mensaje)
 			self.campoTexto.clear()
-			self.chat.append(mensaje)
-			self.chat.setAlignment(Qt.AlignRight)			
+			self.chat.append(mensaje2)
 			cliente.sendall(mensaje.encode('utf-8'))
 		except:
 			cliente.close()
@@ -229,13 +255,11 @@ class SalaDefecto(QMainWindow):
 		vistaListar.listarUsuarios(usuariosDisponibles)
 		vistaListar.show()
 
-	def chatPrivado(self):
-		usuario, ok = QInputDialog.getText(self, 'Buscar usuario', 'digita el nombre del usuario: ')
-		if ok:
-			datos = '#private<{}>'.format(usuario)
-			cliente.sendall(datos.encode('utf-8'))
-			self.salaActual.setText(usuario)
-			self.chat.clear()
+	def mensajePrivado(self):
+		mensaje = DialogMsg(self)
+		mensaje.show()
+
+
 
 
 class Dialog(QDialog):
@@ -246,7 +270,6 @@ class Dialog(QDialog):
 		self.listaDeDatos = QListWidget()
 		self.listaDeDatos.clicked.connect(self.opcionesDeUsuario)
 		
-
 	def listarSalas(self, salas):
 		layout = QVBoxLayout()
 		for sala, num in salas.items():
@@ -267,6 +290,38 @@ class Dialog(QDialog):
 		print(item.text())
 
 
+class DialogMsg(QDialog):
+	def __init__(self, *args, **kwargs):
+		super(DialogMsg, self).__init__(*args, **kwargs)
+		self.setWindowTitle("Mensaje Privado")
+		self.setFixedSize(200, 150)
+		self.labelUser = QLabel('Nombre del usuario: ')
+		self.usuario = QLineEdit()
+		self.labelMsg = QLabel('Mensaje: ')
+		self.mensaje = QLineEdit()
+		self.mensaje.selectAll()
+		self.button = QPushButton('Enviar')
+		self.button.clicked.connect(self.enviarMensaje)
+		layout = QVBoxLayout()
+		layout.addWidget(self.labelUser)
+		layout.addWidget(self.usuario)
+		layout.addWidget(self.labelMsg)
+		layout.addWidget(self.mensaje)
+		layout.addWidget(self.button)
+		self.setLayout(layout)
+
+	def enviarMensaje(self):
+		try:
+			usuario = self.usuario.text()
+			mensaje = self.mensaje.text()
+			datos = '#private<{}><{}>'.format(usuario, mensaje)
+			# self.chat.append(mensaje)
+			# self.chat.setAlignment(Qt.AlignRight)			
+			cliente.sendall(datos.encode('utf-8'))
+			self.close()
+		except:
+			self.close()
+			cliente.close()
 
 
 
