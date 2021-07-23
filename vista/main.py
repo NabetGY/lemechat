@@ -148,20 +148,23 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 		self.msjPrivado = DialogMsg(parent=self)
 		self.usuario = {}
 		self.db=firestore.client()
-
-
 		self.conexion()
 		self.stop_threads = False
 		self.hilo = threading.Thread(target=miHilo, args=(self.recibir,self.stop_threads))
 		self.hilo.daemon = True
 		self.hilo.start()
+
+	def closeEvent(self, event):
+		print('entroo')
+		self.desconectar()
+		event.accept()
 		
 	def conexion(self):
 		db = firestore.client()
 		perfil = db.collection('perfiles').where("email","==",auth.current_user['email']).get()
 		per = perfil[0].to_dict()
 		un=per['username']### user name
-		cliente.connect(('34.228.185.194', 8005))
+		cliente.connect(('localhost', 8005))
 		self.salaActual.setText('Principal')
 		datos = '#nM<{}>'.format(un)
 		cliente.sendall(datos.encode('utf-8'))
@@ -193,7 +196,7 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 				self.chat.clear()
 		elif opcion == '#gR':
 			if datos[10:] == 'False':
-				mensaje = '<p style="color:yellow;text-align:left;">(ADVERTENCIA!)<b> LA SALA DIGITADA NO EXISTE!...</b></p>'
+				mensaje = '<p style="color:green;text-align:left;">(ADVERTENCIA!)<b> LA SALA DIGITADA NO EXISTE!...</b></p>'
 				self.chat.append(mensaje)
 			else:
 				self.salaActual.setText(datos[10:])
@@ -286,18 +289,19 @@ class Dialog(QDialog):
 		
 	def listarSalas(self, salas):
 		layout = QVBoxLayout()
-		for sala, num in salas.items():
-			mensaje = 'Sala: {} : Usuarios conectatos({})'.format(sala, num)
+		for sala, num in salas.items():																																																																																																						
+			mensaje																										= 'Sala: {} : Usuarios conectatos({})'.format(sala, num)
 			self.listaDeDatos.addItem(mensaje)
 		layout.addWidget(self.listaDeDatos)
 		self.setLayout(layout)
 
 	def listarUsuarios(self, usuarios):
-		layout = QVBoxLayout()
+		layout = QVBoxLayout()																																																																																																																																																																																				
 		for usuario in usuarios:
 			self.listaDeDatos.addItem(usuario)
 		layout.addWidget(self.listaDeDatos)
 		self.setLayout(layout)
+		self.setWindowTitle("Usuarios conectados")
 
 	def opcionesDeUsuario(self):
 		item = self.listaDeDatos.currentItem()
@@ -338,7 +342,6 @@ class DialogMsg(QDialog):
 			cliente.close()
 
 
-
 cliente = socket.socket()
 app = QApplication(sys.argv)
 mainWindow=Login()
@@ -348,3 +351,4 @@ widget.setFixedWidth(640)
 widget.setFixedHeight(456)
 widget.show()
 app.exec()
+

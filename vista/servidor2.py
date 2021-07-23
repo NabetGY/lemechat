@@ -52,7 +52,7 @@ class Cliente(threading.Thread):
                 SALAS[self.sala].remove(self)
             SALAS[nombreSala] = [self]
             self.sala = nombreSala
-            datos = f"{'#cR':<{10}}"+'nombreSala'
+            datos = f"{'#cR':<{10}}"+nombreSala
             self.conexion.sendall(datos.encode('utf-8'))
 
         print(SALAS)
@@ -75,7 +75,7 @@ class Cliente(threading.Thread):
                 SALAS[self.sala].remove(self)
             self.sala = nombreSala
             SALAS[self.sala].append(self)
-            datos = f"{'#gR':<{10}}"+'nombreSala'
+            datos = f"{'#gR':<{10}}"+nombreSala
             self.conexion.sendall(datos.encode('utf-8'))
         else:
             datos = f"{'#gR':<{10}}"+'False'
