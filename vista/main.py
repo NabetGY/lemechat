@@ -151,13 +151,15 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 
 
 		self.conexion()
-		self.iniciarHilo()
+		self.stop_threads = False
+		self.hilo = threading.Thread(target=miHilo, args=(self.recibir,self.stop_threads))
+		self.hilo.daemon = True
+		self.hilo.start()
 		
 	def conexion(self):
 		db = firestore.client()
 		perfil = db.collection('perfiles').where("email","==",auth.current_user['email']).get()
 		per = perfil[0].to_dict()
-		print(per['username'])
 		un=per['username']### user name
 		cliente.connect(('localhost', 8005))
 		self.salaActual.setText('Principal')
@@ -167,18 +169,11 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 	def desconectar(self):
 		cliente.sendall('#exit'.encode('utf-8'))
 		cliente.close()
-		login = Login()
-		widget.addWidget(login)
-		widget.setCurrentIndex(widget.currentIndex()+1)
 		print('cliente desconectado...')
 		self.stop_threads = True
-		
-
-	def iniciarHilo(self):
-		self.stop_threads = False
-		self.hilo = threading.Thread(target=miHilo, args=(self.recibir,self.stop_threads))
-		self.hilo.daemon = True
-		self.hilo.start()
+		self.hilo.join()
+		self.close()
+		sys.exit(app.exec_())
 
 	def recibir(self, mensaje):
 		datos = mensaje.decode('utf-8')		
@@ -190,12 +185,16 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 		elif opcion == '#cSala':
 			self.cambioAutoSala(datos[10:])
 		else:
-			mensajeun = json.loads(datos)
-			if 'privado' in mensajeun:
-				mensaje = '<p style="color:red;text-align:left;">(PRIVADO!)<b> {}:</b> {}</p>'.format(mensajeun['username'],mensajeun['mensaje'])
-			else:
-				mensaje = '<p style="color:blue;text-align:left;"><b>{}:</b> {}</p>'.format(mensajeun['username'],mensajeun['mensaje'])
-			self.chat.append(mensaje)
+			if len(datos):
+				print("entro al else")
+				print(len(datos))
+				print(type(len(datos)))
+				mensajeun = json.loads(datos)
+				if 'privado' in mensajeun:
+					mensaje = '<p style="color:red;text-align:left;">(PRIVADO!)<b> {}:</b> {}</p>'.format(mensajeun['username'],mensajeun['mensaje'])
+				else:
+					mensaje = '<p style="color:blue;text-align:left;"><b>{}:</b> {}</p>'.format(mensajeun['username'],mensajeun['mensaje'])
+				self.chat.append(mensaje)
 
 	def enviar(self):
 		try:
@@ -233,18 +232,6 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 
 	def listarSalas(self):
 		cliente.sendall('#lR'.encode('utf-8'))
-		#db = firestore.client()
-		# print('##############')
-		# print(auth.current_user['email'])
-		# print('****************')
-		# consulta = db.collection(u'perfiles')
-		# perfiles =  consulta.stream()
-		# for perfil in perfiles:
-		# 	print('{} => {} '.format(perfil.id, perfil.to_dict()))
-		# print('***************************************')
-		# consulta2 = db.collection(u'perfiles').where('email','==','zel2@mail.com').stream()
-		# for item in consulta2:
-		# 	print('{} => {} '.format(item.id, item.to_dict()))
 
 	def listarSalasRecv(self, mensaje):
 		salasDisponibles = json.loads(mensaje)
@@ -265,8 +252,8 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 		self.msjPrivado.show()
 
 	def mostrarPrivado(self, mensaje):
-		print('entro al privado')
-		print(mensaje)
+		self.chat.append(mensaje)
+
 
 	def cambioAutoSala(self, sala):
 		mensaje = '<p style="color:red;text-align:left;"><b>Sala eliminada por su creador.</b> Transferido automaticamente a la sala: DEFECTO</p>'
@@ -307,8 +294,8 @@ class Dialog(QDialog):
 
 
 class DialogMsg(QDialog):
-	def __init__(self, parent=None, *args, **kwargs):
-		super(DialogMsg, self).__init__(*args, **kwargs).__init__(parent)
+	def __init__(self, parent=None):
+		super(DialogMsg, self).__init__(parent=parent)
 		self.setWindowTitle("Mensaje Privado")
 		self.setFixedSize(200, 150)
 		self.labelUser = QLabel('Nombre del usuario: ')
@@ -330,13 +317,10 @@ class DialogMsg(QDialog):
 		try:
 			usuario = self.usuario.text()
 			mensaje = self.mensaje.text()
-			#mensaje2 = '<p style="color:red;text-align:left;">(PRIVADO!)<b>Para: {}. Mensaje:</b> {}</p>'.format(usuario, mensaje)
-			#self.parent().chat.append(mensaje2)
-			self.parent().mostrarPrivado(mensaje)
-			datos = '#private<{}><{}>'.format(usuario, mensaje)
-			# self.chat.append(mensaje)
-			# self.chat.setAlignment(Qt.AlignRight)			
+			mensaje2 = '<p style="color:red;text-align:left;">(Msj Privado Enviado)<b>Para</b>: {}. <b>Mensaje:</b> {}</p>.'.format(usuario, mensaje)			
+			datos = '#private<{}><{}>'.format(usuario, mensaje)			
 			cliente.sendall(datos.encode('utf-8'))
+			self.parent().mostrarPrivado(mensaje2)
 			self.close()
 		except:
 			self.close()
@@ -344,7 +328,7 @@ class DialogMsg(QDialog):
 
 
 
-cliente = socket.socket() 
+cliente = socket.socket()
 app = QApplication(sys.argv)
 mainWindow=Login()
 widget=QtWidgets.QStackedWidget()

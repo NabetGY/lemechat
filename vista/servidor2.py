@@ -140,7 +140,8 @@ class Cliente(threading.Thread):
             datos=self.conexion.recv(1024)
             print(datos.decode('utf-8'))
             opciones = datos.decode('utf-8')
-            print(opciones)   
+            print(opciones)
+
             if opciones[0] == '#':
                 if opciones[:3] == '#cR':
                     self.crearSala(opciones)
