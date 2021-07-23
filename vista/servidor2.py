@@ -36,18 +36,24 @@ class Cliente(threading.Thread):
         print('creando sala...')
         lista = datos.split("<")
         nombreSala = lista[1].split('>')[0]
-        if SALAS[self.sala][0] == self and self.sala != 'DEFECTO':
-            SALAS[self.sala].remove(self)
-            for item in SALAS[self.sala]:
-                SALAS['DEFECTO'].append(item)
-                SALAS[self.sala].remove(item)
-                item.sala = 'DEFECTO'
-            del SALAS[self.sala]
-            self.difusionNombreSala()
+        if nombreSala in SALAS:
+            datos = f"{'#cR':<{10}}"+'False'
+            self.conexion.sendall(datos.encode('utf-8'))
         else:
-            SALAS[self.sala].remove(self)
-        SALAS[nombreSala] = [self]
-        self.sala = nombreSala
+            if SALAS[self.sala][0] == self and self.sala != 'DEFECTO':
+                SALAS[self.sala].remove(self)
+                for item in SALAS[self.sala]:
+                    SALAS['DEFECTO'].append(item)
+                    SALAS[self.sala].remove(item)
+                    item.sala = 'DEFECTO'
+                del SALAS[self.sala]
+                self.difusionNombreSala()
+            else:
+                SALAS[self.sala].remove(self)
+            SALAS[nombreSala] = [self]
+            self.sala = nombreSala
+            datos = f"{'#cR':<{10}}"+'True'
+            self.conexion.sendall(datos.encode('utf-8'))
 
         print(SALAS)
         print('sala creada!..')
@@ -55,19 +61,26 @@ class Cliente(threading.Thread):
     def cambiarSala(self, datos):
         lista = datos.split("<")
         nombreSala = lista[1].split('>')[0]
-        if SALAS[self.sala][0] == self and self.sala != 'DEFECTO':
-            SALAS[self.sala].remove(self)
-            for item in SALAS[self.sala]:
-                SALAS['DEFECTO'].append(item)
-                SALAS[self.sala].remove(item)
-                item.sala = 'DEFECTO'
+        if nombreSala in SALAS:
+            if SALAS[self.sala][0] == self and self.sala != 'DEFECTO':
+                SALAS[self.sala].remove(self)
+                for item in SALAS[self.sala]:
+                    SALAS['DEFECTO'].append(item)
+                    SALAS[self.sala].remove(item)
+                    item.sala = 'DEFECTO'
 
-            del SALAS[self.sala]
-            self.difusionNombreSala()
+                del SALAS[self.sala]
+                self.difusionNombreSala()
+            else:
+                SALAS[self.sala].remove(self)
+            self.sala = nombreSala
+            SALAS[self.sala].append(self)
+            datos = f"{'#gR':<{10}}"+'True'
+            self.conexion.sendall(datos.encode('utf-8'))
         else:
-            SALAS[self.sala].remove(self)
-        self.sala = nombreSala
-        SALAS[self.sala].append(self)
+            datos = f"{'#gR':<{10}}"+'False'
+            self.conexion.sendall(datos.encode('utf-8'))
+
         
 
     def salirSala(self):
@@ -94,6 +107,8 @@ class Cliente(threading.Thread):
                 SALAS[self.sala].remove(item)
                 item.sala = 'DEFECTO'
             del SALAS[self.sala]
+            self.difusionNombreSala()
+
         else:
             SALAS[self.sala].remove(self)
         self.conexion.close()
@@ -152,7 +167,7 @@ class Cliente(threading.Thread):
                 elif opciones[:5] == '#exit':
                     self.desconectar()
                     break
-                elif opciones[:3] == '#lR':
+                elif opciones[:3] == '#lR': 
                     self.listarSalas()
                 elif opciones[:3] == '#nM':
                     self.setUserName(opciones)

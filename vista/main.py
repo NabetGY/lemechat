@@ -161,7 +161,7 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 		perfil = db.collection('perfiles').where("email","==",auth.current_user['email']).get()
 		per = perfil[0].to_dict()
 		un=per['username']### user name
-		cliente.connect(('localhost', 8005))
+		cliente.connect(('34.228.185.194', 8005))
 		self.salaActual.setText('Principal')
 		datos = '#nM<{}>'.format(un)
 		cliente.sendall(datos.encode('utf-8'))
@@ -184,6 +184,21 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 			self.listarUsuariosRecv(datos[10:])
 		elif opcion == '#cSala':
 			self.cambioAutoSala(datos[10:])
+		elif opcion == '#cR':
+			if datos[10:] == 'False':
+					mensaje = '<p style="color:yellow;text-align:left;">(ADVERTENCIA!)<b> LA SALA DIGITADA YA EXISTE!...</b></p>'
+					self.chat.append(mensaje)
+				else:
+					self.salaActual.setText(nombreSala)
+					self.chat.clear()
+		elif opcion == '#gR':
+			if datos[10:] == 'False':
+					mensaje = '<p style="color:yellow;text-align:left;">(ADVERTENCIA!)<b> LA SALA DIGITADA NO EXISTE!...</b></p>'
+					self.chat.append(mensaje)
+				else:
+					self.salaActual.setText(nombreSala)
+					self.chat.clear()
+
 		else:
 			if len(datos):
 				print("entro al else")
@@ -211,18 +226,14 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 		nombreSala, ok = QInputDialog.getText(self, 'Crear Sala', 'Nombre de la Sala: ')
 		if ok:
 			datos = '#cR<{}>'.format(nombreSala)
-			print(datos)
 			cliente.sendall(datos.encode('utf-8'))
-			self.salaActual.setText(nombreSala)
-			self.chat.clear()
+			
 
 	def cambiarSala(self):
 		nombreSala, ok = QInputDialog.getText(self, 'Cambiar de Sala', 'Nombre de la Sala: ')
 		if ok:
 			datos = '#gR<{}>'.format(nombreSala)
 			cliente.sendall(datos.encode('utf-8'))
-			self.salaActual.setText(nombreSala)
-			self.chat.clear()
 
 	def salirSala(self):
 		if self.salaActual.text() != 'DEFECTO':
