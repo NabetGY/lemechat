@@ -186,18 +186,18 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 			self.cambioAutoSala(datos[10:])
 		elif opcion == '#cR':
 			if datos[10:] == 'False':
-					mensaje = '<p style="color:yellow;text-align:left;">(ADVERTENCIA!)<b> LA SALA DIGITADA YA EXISTE!...</b></p>'
-					self.chat.append(mensaje)
-				else:
-					self.salaActual.setText(nombreSala)
-					self.chat.clear()
+				mensaje = '<p style="color:yellow;text-align:left;">(ADVERTENCIA!)<b> LA SALA DIGITADA YA EXISTE!...</b></p>'
+				self.chat.append(mensaje)
+			else:
+				self.salaActual.setText(datos[10:])
+				self.chat.clear()
 		elif opcion == '#gR':
 			if datos[10:] == 'False':
-					mensaje = '<p style="color:yellow;text-align:left;">(ADVERTENCIA!)<b> LA SALA DIGITADA NO EXISTE!...</b></p>'
-					self.chat.append(mensaje)
-				else:
-					self.salaActual.setText(nombreSala)
-					self.chat.clear()
+				mensaje = '<p style="color:yellow;text-align:left;">(ADVERTENCIA!)<b> LA SALA DIGITADA NO EXISTE!...</b></p>'
+				self.chat.append(mensaje)
+			else:
+				self.salaActual.setText(datos[10:])
+				self.chat.clear()
 
 		else:
 			if len(datos):
