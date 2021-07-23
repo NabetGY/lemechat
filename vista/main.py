@@ -118,12 +118,14 @@ class Registro(QMainWindow, ui_registro):
 class Comunicate(QtCore.QObject):
 	senial = QtCore.pyqtSignal(bytes)
 
-def miHilo(callbackFunc):
+def miHilo(callbackFunc, stop):
 	# Setup the signal-slot mechanism.
 	miOrigen = Comunicate()
 	miOrigen.senial.connect(callbackFunc) 
 	while(True):
 		try:
+			if stop:
+				break
 			msgParaSala = cliente.recv(1024)
 			miOrigen.senial.emit(msgParaSala)
 		except:
@@ -143,7 +145,7 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 		self.actionListar_Salas.triggered.connect(self.listarSalas)
 		self.actionUsuarios_conectados.triggered.connect(self.showUsers)
 		self.actionMensaje_Privado.triggered.connect(self.mensajePrivado)
-
+		self.msjPrivado = DialogMsg(parent=self)
 		self.usuario = {}
 		self.db=firestore.client()
 
@@ -157,7 +159,7 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 		per = perfil[0].to_dict()
 		print(per['username'])
 		un=per['username']### user name
-		cliente.connect(('localhost', 8004))
+		cliente.connect(('localhost', 8005))
 		self.salaActual.setText('Principal')
 		datos = '#nM<{}>'.format(un)
 		cliente.sendall(datos.encode('utf-8'))
@@ -169,12 +171,14 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 		widget.addWidget(login)
 		widget.setCurrentIndex(widget.currentIndex()+1)
 		print('cliente desconectado...')
+		self.stop_threads = True
 		
 
 	def iniciarHilo(self):
-		hilo = threading.Thread(target=miHilo, args=(self.recibir,))
-		hilo.daemon = True
-		hilo.start()
+		self.stop_threads = False
+		self.hilo = threading.Thread(target=miHilo, args=(self.recibir,self.stop_threads))
+		self.hilo.daemon = True
+		self.hilo.start()
 
 	def recibir(self, mensaje):
 		datos = mensaje.decode('utf-8')		
@@ -183,6 +187,8 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 			self.listarSalasRecv(datos[10:])
 		elif opcion == '#sU':
 			self.listarUsuariosRecv(datos[10:])
+		elif opcion == '#cSala':
+			self.cambioAutoSala(datos[10:])
 		else:
 			mensajeun = json.loads(datos)
 			if 'privado' in mensajeun:
@@ -256,8 +262,18 @@ class SalaDefecto(QMainWindow, Ui_salaDefecto):
 		vistaListar.show()
 
 	def mensajePrivado(self):
-		mensaje = DialogMsg(self)
-		mensaje.show()
+		self.msjPrivado.show()
+
+	def mostrarPrivado(self, mensaje):
+		print('entro al privado')
+		print(mensaje)
+
+	def cambioAutoSala(self, sala):
+		mensaje = '<p style="color:red;text-align:left;"><b>Sala eliminada por su creador.</b> Transferido automaticamente a la sala: DEFECTO</p>'
+		self.salaActual.setText(sala)
+		self.chat.clear()
+		self.chat.append(mensaje)
+
 
 
 
@@ -291,8 +307,8 @@ class Dialog(QDialog):
 
 
 class DialogMsg(QDialog):
-	def __init__(self, *args, **kwargs):
-		super(DialogMsg, self).__init__(*args, **kwargs)
+	def __init__(self, parent=None, *args, **kwargs):
+		super(DialogMsg, self).__init__(*args, **kwargs).__init__(parent)
 		self.setWindowTitle("Mensaje Privado")
 		self.setFixedSize(200, 150)
 		self.labelUser = QLabel('Nombre del usuario: ')
@@ -314,6 +330,9 @@ class DialogMsg(QDialog):
 		try:
 			usuario = self.usuario.text()
 			mensaje = self.mensaje.text()
+			#mensaje2 = '<p style="color:red;text-align:left;">(PRIVADO!)<b>Para: {}. Mensaje:</b> {}</p>'.format(usuario, mensaje)
+			#self.parent().chat.append(mensaje2)
+			self.parent().mostrarPrivado(mensaje)
 			datos = '#private<{}><{}>'.format(usuario, mensaje)
 			# self.chat.append(mensaje)
 			# self.chat.setAlignment(Qt.AlignRight)			

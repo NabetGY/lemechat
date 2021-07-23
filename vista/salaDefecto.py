@@ -65,7 +65,6 @@ class Ui_salaDefecto(object):
         self.menuOpciones.addAction(self.actionListar_Salas)
         self.menuOpciones.addAction(self.actionUsuarios_conectados)
         self.menuOpciones.addAction(self.actionMensaje_Privado)
-        self.menubar.addAction(self.menuinicio.menuAction())
         self.menubar.addAction(self.menuOpciones.menuAction())
 
         self.retranslateUi(salaDefecto)

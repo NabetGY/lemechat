@@ -26,12 +26,27 @@ class Cliente(threading.Thread):
             if cliente.conexion != self.conexion:
                 cliente.conexion.sendall(datosEnviados.encode('utf-8'))
 
+    def difusionNombreSala(self):
+        datos = f"{'#cSala':<{10}}"+'DEFECTO'
+        for cliente in SALAS['DEFECTO']:
+            if cliente.conexion != self.conexion:
+                cliente.conexion.sendall(datos.encode('utf-8'))
+
     def crearSala(self, datos):
         print('creando sala...')
         lista = datos.split("<")
         nombreSala = lista[1].split('>')[0]
+        if SALAS[self.sala][0] == self and self.sala != 'DEFECTO':
+            SALAS[self.sala].remove(self)
+            for item in SALAS[self.sala]:
+                SALAS['DEFECTO'].append(item)
+                SALAS[self.sala].remove(item)
+                item.sala = 'DEFECTO'
+            del SALAS[self.sala]
+            self.difusionNombreSala()
+        else:
+            SALAS[self.sala].remove(self)
         SALAS[nombreSala] = [self]
-        SALAS[self.sala].remove(self)
         self.sala = nombreSala
 
         print(SALAS)
@@ -40,18 +55,47 @@ class Cliente(threading.Thread):
     def cambiarSala(self, datos):
         lista = datos.split("<")
         nombreSala = lista[1].split('>')[0]
-        SALAS[self.sala].remove(self)
+        if SALAS[self.sala][0] == self and self.sala != 'DEFECTO':
+            SALAS[self.sala].remove(self)
+            for item in SALAS[self.sala]:
+                SALAS['DEFECTO'].append(item)
+                SALAS[self.sala].remove(item)
+                item.sala = 'DEFECTO'
+
+            del SALAS[self.sala]
+            self.difusionNombreSala()
+        else:
+            SALAS[self.sala].remove(self)
         self.sala = nombreSala
-        SALAS[nombreSala].append(self)
+        SALAS[self.sala].append(self)
+        
 
     def salirSala(self):
-        SALAS[self.sala].remove(self)
-        self.sala = 'DEFECTO'
+        if SALAS[self.sala][0] == self and self.sala != 'DEFECTO':
+            SALAS[self.sala].remove(self)
+            for item in SALAS[self.sala]:
+                    SALAS['DEFECTO'].append(item)
+                    SALAS[self.sala].remove(item)
+                    item.sala = 'DEFECTO'
+            del SALAS[self.sala]
+            self.difusionNombreSala()
+        else:
+            SALAS[self.sala].remove(self)
         SALAS['DEFECTO'].append(self)
+        self.sala = 'DEFECTO'
         mensaje = 'Se ha salido con exito de la sala!..\nSala actual DEFECTO... '
 
+
     def desconectar(self):
-        SALAS[self.sala].remove(self)
+        if SALAS[self.sala][0] == self and self.sala != 'DEFECTO':
+            SALAS[self.sala].remove(self)
+            for item in SALAS[self.sala]:
+                SALAS['DEFECTO'].append(item)
+                SALAS[self.sala].remove(item)
+                item.sala = 'DEFECTO'
+            del SALAS[self.sala]
+        else:
+            SALAS[self.sala].remove(self)
         self.conexion.close()
         mensaje = 'Se ha desconectado con exito del servidor!..\n'
 
@@ -152,7 +196,7 @@ class Servidor():
 
 if __name__ == '__main__':
 
-    servidor = Servidor('localhost', 8004)  
+    servidor = Servidor('localhost', 8005)  
     servidor.iniciarSocket()
      
 
